@@ -2,13 +2,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from pathlib import Path
 import fileinput
 import os
+#import filter
 
 class fileIO:
 	def simpleRead( self, fileToOpen, force=False, multiLine=False, separator="" ):
 		try:
 			file = open( fileToOpen, "r", encoding="utf-8" )
 		except:
-			print( "IN fileIO::simpleReadWrite: could not open file <", fileToOpen, ">" )
+			print( "IN fileIO::simpleRead: could not open file <", fileToOpen, ">" )
 			if( force ):
 				self.forceCreate( fileToOpen )
 				return ''
@@ -21,17 +22,19 @@ class fileIO:
 		elif( separator != "" and multiLine == True ):
 			separated = []
 			for item in file.read( ).splitlines( ):
-				separated.append( item.split( separator ))
+				if( item != '' ):
+					separated.append( item.split( separator ))
 			file.close( )
-			return separated
+			return list( filter( None, separated ))
+				
 		elif( separator != "" ):
 			data = file.read( ).split( separator )
 			file.close( )
-			return data
+			return list( filter( None, data ))
 		elif( multiLine == True ):
 			data = file.read( ).splitlines( )
 			file.close( )
-			return data
+			return list( filter( None, data ))
 
 	def conditionalQtRead( self, fileToOpen, listOfQtItems, force=False, returnText=False ):
 		i = 0
@@ -49,7 +52,6 @@ class fileIO:
 				if( d == item.text( ) and len( item.text( ))):
 					item.setChecked( True )
 					i += 1 
-					#print( i,"+1 ", item.text(), " - ", d )
 		if( returnText ):
 			return data
 		else:
@@ -179,3 +181,12 @@ class fileIO:
 			return True
 		else:
 			return False
+
+	def getNumOfLines( self, file ):
+		try:
+			f = open( file, 'r', encoding="utf-8" )
+			return len( list( filter( None, f.read( ).splitlines( ))))
+		except:
+			#print( "IN fileIO::getNumOfLines: could not open file <", file, ">" )
+			return 0
+		
