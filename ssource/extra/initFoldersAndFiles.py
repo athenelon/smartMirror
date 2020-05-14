@@ -7,8 +7,11 @@ class initFoldersAndFiles:
 			 { 'Name' : "data/configFiles/colorFile.txt", 'Value' : "#00ffff:#ff0000" }, 
 			 { 'Name' : "data/news/countryFile.txt", 'Value' : "Serbia;~sepa~;rs" }, 
 			 { 'Name' : "data/configFiles/fontFile.txt", 'Value' : "Times\n12" }, 
-			 { 'Name' : "data/weather/weather.txt", 'Value' : "Celsius\nNovi Sad" },
-			 { 'Name' : "data/news/categoryFile.txt", 'Value' : "General"}]
+			 { 'Name' : "data/weather/weather.txt", 'Value' : "Celsius\nNovi Sad"},
+			 { 'Name' : "data/news/categoryFile.txt", 'Value' : "General"},
+			 { 'Name' : "data/configFiles/speedFile.txt", 'Value' : "5"},
+			 { 'Name' : "data/configFiles/viewFile.txt", 'Value' : "Default"},
+			 { 'Name' : "data/configFiles/sleepTimer.txt", 'Value' : "00:00\n00:00\n0\nFalse\nFalse"}]
 
 	def initAllFiles( self ):
 		for f in self.files:

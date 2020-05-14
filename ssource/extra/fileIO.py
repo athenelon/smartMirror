@@ -2,14 +2,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from pathlib import Path
 import fileinput
 import os
-#import filter
 
 class fileIO:
 	def simpleRead( self, fileToOpen, force=False, multiLine=False, separator="" ):
 		try:
 			file = open( fileToOpen, "r", encoding="utf-8" )
 		except:
-			print( "IN fileIO::simpleRead: could not open file <", fileToOpen, ">" )
+			print( "IN fileIO::simpleReadWrite: could not open file <", fileToOpen, ">" )
 			if( force ):
 				self.forceCreate( fileToOpen )
 				return ''
@@ -22,19 +21,17 @@ class fileIO:
 		elif( separator != "" and multiLine == True ):
 			separated = []
 			for item in file.read( ).splitlines( ):
-				if( item != '' ):
-					separated.append( item.split( separator ))
+				separated.append( item.split( separator ))
 			file.close( )
-			return list( filter( None, separated ))
-				
+			return separated
 		elif( separator != "" ):
 			data = file.read( ).split( separator )
 			file.close( )
-			return list( filter( None, data ))
+			return data
 		elif( multiLine == True ):
 			data = file.read( ).splitlines( )
 			file.close( )
-			return list( filter( None, data ))
+			return data
 
 	def conditionalQtRead( self, fileToOpen, listOfQtItems, force=False, returnText=False ):
 		i = 0
