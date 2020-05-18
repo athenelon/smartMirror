@@ -27,6 +27,9 @@ class config:
 
 		self.__scheduler = BackgroundScheduler( )
 
+		self.__sleepF1 = True
+		self.__sleepF2 = True
+
 	def setColor( self ):
 		color, colorInv = self.__fileIO.simpleRead( self.__colorFile, separator=":" )
 		self.__color = [int( color[ i : i +2 ], 16 ) for i in range( 1, len(color) -1, 2 )]
@@ -47,22 +50,27 @@ class config:
 
 	def setSleepTime( self ):
 		sleep = self.__fileIO.simpleRead( self.__sleepFile, multiLine=True )
-		print( sleep )
-		if( not sleep[3] ):
-			print( "Sleep on")
-			self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpoff' )
-			self.__scheduler.add_job( self.__vcgencmd.display_power_on( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpon')
-		else:
-			print( "sleep off")
-			self.__scheduler.remove_job( 'dpoff' )
-			self.__scheduler.remove_job( 'dpon' )
-		if( not sleep[4] ):
-			print ("dim on")
-			self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", minutes=int( sleep[2] ), id='dim' )
-			self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", seconds=30, id='dimTest' )#test
-		else:
-			print( "dim off")
-			self.__scheduler.remove_job( 'dim' )
+		if( len( sleep ) > 4 ):
+			print( sleep )
+			if( not sleep[3] and self.__sleepF1 ):
+				self.__sleepF1 = False
+				print( "Sleep on")
+				self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpoff' )
+				self.__scheduler.add_job( self.__vcgencmd.display_power_on( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpon')
+			elif( not self.__sleepF1 ):
+				self.__sleepF1 = True
+				print( "sleep off")
+				self.__scheduler.remove_job( 'dpoff' )
+				self.__scheduler.remove_job( 'dpon' )
+			if( not sleep[4] and self.__sleepF2 ):
+				self.__sleepF2 = False
+				print ("dim on")
+				self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", minutes=int( sleep[2] ), id='dim' )
+				self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", seconds=30, id='dimTest' )#test
+			elif( not self.__sleepF2 ):
+				self.__sleepF2 = True
+				print( "dim off")
+				self.__scheduler.remove_job( 'dim' )
 
 	def readFontFromFile( self ):
 		font = self.__fileIO.simpleRead( self.__fontFile, multiLine=True )
