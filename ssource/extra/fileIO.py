@@ -52,7 +52,6 @@ class fileIO:
 				if( d == item.text( ) and len( item.text( ))):
 					item.setChecked( True )
 					i += 1 
-					#print( i,"+1 ", item.text(), " - ", d )
 		if( returnText ):
 			return data
 		else:
@@ -182,3 +181,12 @@ class fileIO:
 			return True
 		else:
 			return False
+
+	def getNumOfLines( self, file ):
+		try:
+			f = open( file, 'r', encoding="utf-8" )
+			return len( list( filter( None, f.read( ).splitlines( ))))
+		except:
+			#print( "IN fileIO::getNumOfLines: could not open file <", file, ">" )
+			return 0
+		

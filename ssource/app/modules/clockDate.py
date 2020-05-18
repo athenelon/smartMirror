@@ -1,8 +1,7 @@
 import datetime
 import calendar
 from source.app.drawPygame import drawPygame
-class clockDate():
-	step = 64
+class clockDate(drawPygame):
 
 	def getTime( self ):
 		return datetime.datetime.now( ).strftime( "%H:%M")
@@ -18,7 +17,7 @@ class clockDate():
 													 int( datetime.datetime.now( ).strftime( "%m")))
 
 	def getNthMonth( self, month ):
-		return calendar.TextCalendar( ).formatmonth( month )
+		return calendar.TextCalendar( ).formatmonth(int( datetime.datetime.now( ).strftime( "%Y")), month )
 
 	def formatForPygame( self, month ):
 		month = month.splitlines( )
@@ -38,10 +37,10 @@ class clockDate():
 		self.__weekDay = font.render( self.getWeekDay(), True, color )
 
 	def drawTime( self, screen ):
-		screen.blit( self.__time, ( self.step*.5, self.step*0 ))
+		screen.blit( self.__time, ( super( ).getStep( )*.5, super( ).getStep( )*0 ))
 
 	def drawDate( self, screen ):
-		screen.blit( self.__date, ( self.step*3, self.step*.1 ))
+		screen.blit( self.__date, ( super( ).getStep( )*3, super( ).getStep( )*.1 ))
 
 	def drawWeekDay( self, screen ):
-		screen.blit( self.__weekDay, ( self.step*3, self.step*.5 ))
+		screen.blit( self.__weekDay, ( super( ).getStep( )*3, super( ).getStep( )*.5 ))

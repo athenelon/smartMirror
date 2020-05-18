@@ -4,8 +4,9 @@ import threading
 from source.extra.fileIO import fileIO
 
 class socketServer:
-	ip = '127.0.0.1'
-	port = 8080
+	#__ip = '192.168.0.163'
+	__ip = '127.0.0.1'
+	__port = 14036
 
 	def __init__( self ):
 		
@@ -16,12 +17,13 @@ class socketServer:
 		self.__configFlag = False
 		self.__weatherFlag = False
 		self.__newsFlag = False
+		self.__weatherGetFlag = False
 
 		self.__fileIO = fileIO( )
 
 		self.__server = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		self.__server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.__server.bind(( self.ip, self.port ))
+		self.__server.bind(( self.__ip, self.__port ))
 		self.__server.listen( 5 )
 
 		delay = 0.1
@@ -36,6 +38,8 @@ class socketServer:
 		return self.__weatherFlag
 	def getNewsFlag( self ):
 		return self.__newsFlag
+	def getWeatherGetFlag( self ):
+		return self.__weatherGetFlag
 
 	def setEventFlag( self, state ):
 		self.__eventFlag = state
@@ -45,6 +49,8 @@ class socketServer:
 		self.__weatherFlag = state
 	def setNewsFlag( self, state ):
 		self.__newsFlag	 = state
+	def setWeatherGetFlag( self, state ):
+		self.__weatherGetFlag = state
 
 	def listenForClient( self, delay ):
 		while( self.__listenFlag ):
@@ -83,7 +89,6 @@ class socketServer:
 		return data.decode( ), runFlag
 
 	def setClientData( self, data, runFlag ):
-		print( len( data ), data)
 		if( len( data ) >= 1 ):
 			data = data.split( ";~;" )
 			if( "~file~" in data[ 0 ]):
@@ -106,6 +111,7 @@ class socketServer:
 			self.__configFlag = True
 		if( "data/weather" in data ):
 			self.__weatherFlag = True
+			self.__weatherGetFlag = True
 		if( "data/news" in data ):
 			self.__newsFlag = True
 
@@ -113,23 +119,3 @@ class socketServer:
 		self.__runFlag = False
 		self.__listenFlag = False
 		self.__server.close( )
-		print( "called")
-"""
-def getClientData( self, conn, runFlag ):#use decode when u have everything
-		data = ''
-		dataSegment = conn.recv( 4096 ).decode( )
-
-		while( len( dataSegment ) >= 1 ):
-			if( "clientPing" in dataSegment ):
-				print( "\033[92m" + dataSegment + "\033[0m" )
-				break
-
-			if( "~pingDisc~" in dataSegment ):
-				print( "Disconnecting ping thread")
-				runFlag = False
-				break
-			
-			data += dataSegment
-			dataSegment = conn.recv( 4096 ).decode( )
-		return data, runFlag
-"""

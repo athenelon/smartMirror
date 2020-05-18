@@ -7,9 +7,10 @@ class events(drawPygame):
 		super( ).__init__( xOffset, yOffset, move )
 
 	def renderText( self, color, font, text, maxWidthForWrap, maxLinesPerWrap=2 ):
-		for i in range( len( text )):
-			if( self.__separator in text[i] ):
-				event = text[i].split( self.__separator )
-				event = event[0] + " - " + event[1]
-				text[i] = event
+		if( text != "Nothing to do today..." ):
+			for i in range( len( text )):
+				if( self.__separator in text[i] ):
+					event = text[i].split( self.__separator )
+					event = event[0] + " - " + event[1]
+					text[i] = event
 		super( ).renderText( color, font, text, maxWidthForWrap, maxLinesPerWrap )

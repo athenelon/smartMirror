@@ -2,6 +2,10 @@ from source.extra.fileIO import fileIO
 import sys
 import pygame
 
+import os
+from apscheduler.schedulers.background import BackgroundScheduler
+from vcgencmd import Vcgencmd
+
 class config:
 	__white = (255, 255, 255)
 	__red = (255, 0, 0)
@@ -10,11 +14,18 @@ class config:
 	__colorFile = "data/configFiles/colorFile.txt"
 	__brightnessFile = "data/configFiles/brightnessFile.txt"
 	__fontFile = "data/configFiles/fontFile.txt"
+	__speedFile = "data/configFiles/speedFile.txt"
+	__viewFile = "data/configFiles/viewFile.txt"
+	__sleepFile = "data/configFiles/sleepTimer.txt"
 
 	__fileIO = fileIO( )
 
 	def __init__( self ):
-		self.__fonts = [0] *7
+		self.__vcgencmd = Vcgencmd( )
+		self.__fonts = [0] *8
+		self.__cSize = 0
+
+		self.__scheduler = BackgroundScheduler( )
 
 	def setColor( self ):
 		color, colorInv = self.__fileIO.simpleRead( self.__colorFile, separator=":" )
@@ -27,13 +38,31 @@ class config:
 
 	def setBrightness( self ):
 		brightness = self.__fileIO.simpleRead( self.__brightnessFile )
-		print( brightness, type(brightness))
 		if( sys.platform == "linux" or sys.platform == "linux2" ):
 			import os
 			os.system( 'xbacklight -set ' + brightness )
 		elif( sys.platform == "win32" ):
 			import wmi
 			wmi.WMI( namespace='wmi' ).WmiMonitorBrightnessMethods( )[0].WmiSetBrightness( int( brightness ), 1 )
+
+	def setSleepTime( self ):
+		sleep = self.__fileIO.simpleRead( self.__sleepFile, multiLine=True )
+		print( sleep )
+		if( not sleep[3] ):
+			print( "Sleep on")
+			self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpoff' )
+			self.__scheduler.add_job( self.__vcgencmd.display_power_on( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpon')
+		else:
+			print( "sleep off")
+			self.__scheduler.remove_job( 'dpoff' )
+			self.__scheduler.remove_job( 'dpon' )
+		if( not sleep[4] ):
+			print ("dim on")
+			self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", minutes=int( sleep[2] ), id='dim' )
+			self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", seconds=30, id='dimTest' )#test
+		else:
+			print( "dim off")
+			self.__scheduler.remove_job( 'dim' )
 
 	def readFontFromFile( self ):
 		font = self.__fileIO.simpleRead( self.__fontFile, multiLine=True )
@@ -52,22 +81,34 @@ class config:
 		elif( len( font ) == 4 ):
 			font[ 2 ] = True
 			font[ 3 ] = True
-		print( font )
 		return font
 
 	def getFont( self, index ):
 		return self.__fonts[index]
+	def setCSize( self, size ):
+		self.__cSize = size
+
+	def getSpeed( self ):
+		speed = self.__fileIO.simpleRead( self.__speedFile )
+		if( "Non" in speed ):
+			return 0
+		else:
+			return int( speed ) *1000
+
+	def getView( self ):
+		return self.__fileIO.simpleRead( self.__viewFile, multiLine=True )[0]
 
 	def getAllFonts( self ):
 		fontName, fontSize, bold, italic = self.readFontFromFile( )
 		try:		
-			self.__fonts[0] = pygame.font.SysFont( fontName, fontSize, bold=bold, italic=italic )#calendar
+			self.__fonts[0] = pygame.font.SysFont( fontName, fontSize + self.__cSize, bold=bold, italic=italic )#calendar
 			self.__fonts[1] = pygame.font.SysFont( fontName, fontSize + 0 , bold=bold, italic=italic )#date
 			self.__fonts[2] = pygame.font.SysFont( fontName, fontSize + 32 , bold=bold, italic=italic )#time
 			self.__fonts[3] = pygame.font.SysFont( fontName, fontSize -12 , bold=bold, italic=italic )#events
 			self.__fonts[4] = pygame.font.SysFont( fontName, fontSize - 12 , bold=bold, italic=italic )#news
 			self.__fonts[5] = pygame.font.SysFont( fontName, fontSize - 4, bold=bold, italic=italic )#weather
 			self.__fonts[6] = pygame.font.SysFont( fontName, fontSize - 12 , bold=bold, italic=italic )#hour
+			self.__fonts[7] = pygame.font.SysFont( fontName, fontSize - 18 , bold=bold, italic=italic )#hour
 		except:
 			self.__fonts[0] = pygame.font.Font( fontName, fontSize , bold=bold, italic=italic )
 			self.__fonts[1] = pygame.font.Font( fontName, fontSize + 0 , bold=bold, italic=italic )
@@ -76,4 +117,5 @@ class config:
 			self.__fonts[4] = pygame.font.Font( fontName, fontSize - 12 , bold=bold, italic=italic )
 			self.__fonts[5] = pygame.font.Font( fontName, fontSize - 4 , bold=bold, italic=italic )
 			self.__fonts[6] = pygame.font.Font( fontName, fontSize - 12 , bold=bold, italic=italic )
+			self.__fonts[7] = pygame.font.Font( fontName, fontSize - 18 , bold=bold, italic=italic )
 		return self.__fonts
