@@ -4,7 +4,7 @@ import pygame
 
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
-from vcgencmd import Vcgencmd
+#from vcgencmd import Vcgencmd
 
 class config:
 	__white = (255, 255, 255)
@@ -21,11 +21,13 @@ class config:
 	__fileIO = fileIO( )
 
 	def __init__( self ):
-		self.__vcgencmd = Vcgencmd( )
+		#self.__vcgencmd = Vcgencmd( )
+		self.__valChange = ["", "", ""]
 		self.__fonts = [0] *8
 		self.__cSize = 0
 
 		self.__scheduler = BackgroundScheduler( )
+		self.__scheduler.start( )
 
 		self.__sleepF1 = True
 		self.__sleepF2 = True
@@ -51,26 +53,52 @@ class config:
 	def setSleepTime( self ):
 		sleep = self.__fileIO.simpleRead( self.__sleepFile, multiLine=True )
 		if( len( sleep ) > 4 ):
-			print( sleep )
-			if( not sleep[3] and self.__sleepF1 ):
+			if( self.__valChange[0] != sleep[0] or self.__valChange[1] != sleep[1] ):
+				try:
+					self.__sleepF1 = True
+					self.__scheduler.remove_job( 'dpoff' )
+					self.__scheduler.remove_job( 'dpon' )
+				except:
+					print( "IN config::setSleepTime: jobs dont exist!" )
+			if( self.__valChange[2] != sleep[2] ):
+				try:
+					self.__sleepF2 = True
+					self.__scheduler.remove_job( "dim" )
+				except:
+					print( "IN config::setSleepTime: jobs dont exist!" )
+
+			if( sleep[3] in "False" and self.__sleepF1 ):
 				self.__sleepF1 = False
-				print( "Sleep on")
-				self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpoff' )
-				self.__scheduler.add_job( self.__vcgencmd.display_power_on( 0 ), "cron", hour=int( sleep[0].split(":")[0] ), id='dpon')
-			elif( not self.__sleepF1 ):
+				hr = int( sleep[0].split(":")[0] )
+				mi = int( sleep[0].split(":")[1] )
+				self.__scheduler.add_job( lambda: self.__vcgencmd.display_power_off( 2 ), "cron", hour=hr, minute=mi, id='dpoff' )
+				#self.__scheduler.add_job( lambda: self.displayOffTest(hr), "cron", hour=hr, minute=mi, id='dpoff' )
+				hr = int( sleep[1].split(":")[0] )
+				mi = int( sleep[1].split(":")[1] )
+				self.__scheduler.add_job( lambda: self.__vcgencmd.display_power_on( 2 ), "cron", hour=hr, minute=mi, id='dpon')
+				#self.__scheduler.add_job( lambda: self.displayOnTest(hr), "cron", hour=hr, minute=mi, id='dpon' )
+			elif( sleep[3] in "True" and not self.__sleepF1 ):
 				self.__sleepF1 = True
-				print( "sleep off")
 				self.__scheduler.remove_job( 'dpoff' )
 				self.__scheduler.remove_job( 'dpon' )
-			if( not sleep[4] and self.__sleepF2 ):
+				self.__vcgencmd.display_power_on( 2 )
+				#print( "Display on: " )
+			if( sleep[4] in "False" and self.__sleepF2 ):
 				self.__sleepF2 = False
-				print ("dim on")
-				self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", minutes=int( sleep[2] ), id='dim' )
-				self.__scheduler.add_job( self.__vcgencmd.display_power_off( 0 ), "inverval", seconds=30, id='dimTest' )#test
-			elif( not self.__sleepF2 ):
+				self.__scheduler.add_job( lambda: self.__vcgencmd.display_power_off( 2 ), "interval", minutes=int( sleep[2] ), id='dim' )
+				#self.__scheduler.add_job( lambda: self.displayOffTest(int(sleep[2])), "interval", minutes=int( sleep[2] ), id='dim' )
+			elif( sleep[4] in "True" and not self.__sleepF2 ):
 				self.__sleepF2 = True
-				print( "dim off")
 				self.__scheduler.remove_job( 'dim' )
+				self.__vcgencmd.display_power_on( 2 )
+				#print( "Display on: " )
+			self.__valChange = [sleep[0], sleep[1], sleep[2]]
+			print( self.__scheduler.print_jobs( ))
+
+	def displayOffTest( self, hr ):
+		print( "Display off: ", hr )
+	def displayOnTest( self, hr ):
+		print( "Display on: ", hr )
 
 	def readFontFromFile( self ):
 		font = self.__fileIO.simpleRead( self.__fontFile, multiLine=True )
@@ -108,7 +136,7 @@ class config:
 
 	def getAllFonts( self ):
 		fontName, fontSize, bold, italic = self.readFontFromFile( )
-		try:		
+		try:
 			self.__fonts[0] = pygame.font.SysFont( fontName, fontSize + self.__cSize, bold=bold, italic=italic )#calendar
 			self.__fonts[1] = pygame.font.SysFont( fontName, fontSize + 0 , bold=bold, italic=italic )#date
 			self.__fonts[2] = pygame.font.SysFont( fontName, fontSize + 32 , bold=bold, italic=italic )#time

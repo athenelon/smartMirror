@@ -83,8 +83,9 @@ class app:
 
 		self.__scheduler.start( )
 
+		print( self.__scheduler.get_jobs( ) )
+
 	def renderDate( self ):
-		print( "RENDERING DATE AUTOMATED")
 		day, mnt, year = self.__time.getDate( ).split( " " )
 		if( day[0] == '0' ):
 			day = day[1:3]
